@@ -1,0 +1,42 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+.grid {
+    border-collapse: collapse;
+}
+
+.grid .cell {
+    width: 20px;
+    height: 20px;
+    background-color: #d8fffd;
+    border: 1px solid #86a4a2;
+    cursor: pointer;
+}
+.cell.selected-cell {
+    background-color: #ae767e;
+}
+
+.preloader-white {
+    background: url("/images/preloaders/preloader_white.gif") no-repeat;
+    width: 45px;
+    height: 35px;
+    display: inline-block;
+}
+.field {
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
