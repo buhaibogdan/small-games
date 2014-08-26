@@ -74,21 +74,50 @@ pg.Plane = function(R) {
         var out_y = bbox.height + bbox.y > field_y_finish;
         var before_x = bbox.x < field_x_start;
         var before_y = bbox.y < field_y_start;
+        var move_x = bbox.x,
+            move_y = bbox.y;
         if (before_x && before_y) {
-            this.transform("t" + field_x_start + ',' + field_y_start);
+            move_x = field_x_start;
+            move_y = field_y_start;
         } else if (before_x) {
-            this.transform("t" + field_x_start + ',' + bbox.y);
+            move_x = field_x_start;
+            move_y = bbox.y;
         } else if (before_y) {
-            this.transform("t"+ bbox.x + ',' + field_y_start);
+            move_x = bbox.x;
+            move_y = field_y_start;
         }
 
         if (out_x || out_y) {
-            this.transform("t"+this.start_x + ','+this.start_y);
+            move_x = this.start_x;
+            move_y = this.start_y;
+
         }
 
 
+        // to which corner is it closer?
+        // 4 corners possible
+        // , limit_start_x, limit_start_y, limit_end_x, limit_end_y
+        var get_closest_corner = function(x, y) {
+            var corner_top_x = Math.floor(x / 20) * 20;
+            var corner_top_y = Math.floor(y / 20) * 20;
+            var closest_x = corner_top_x,
+                closest_y = corner_top_y;
+            console.log(x, '-', corner_top_x, '>', corner_top_x+20, '-', x);
+            console.log(corner_top_x, corner_top_y);
 
+            if (x-corner_top_x >( corner_top_x+20) - x) {
+                closest_x = corner_top_x + 20
+            }
 
+            if (y-corner_top_y >( corner_top_y+20) - y) {
+                closest_y = corner_top_y + 20
+            }
+            return {x: closest_x, y: closest_y};
+
+        };
+        var move_to = get_closest_corner(move_x, move_y);
+        console.log(move_to)
+        this.transform("t"+move_to.x + ','+move_to.y);
         //console.log(bbox);
         // TODO: animation here would be nice
 
