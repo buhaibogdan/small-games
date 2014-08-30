@@ -18,6 +18,7 @@ pg.Plane = function(R) {
     }
     this.R = R;
     this.countClones = 0;
+    this.rotationState = 0;
     var planePath = 'M40,0 L60,0 L60,20 L100,20 L100,40 L60,40 L60,60 L80,60 L80,80 L20,80 L20,60 L40,60 L40,40 L0,40 L0,20 L40,20 L40,0';
 
     var plane = this.R.path(planePath);
@@ -27,9 +28,19 @@ pg.Plane = function(R) {
         transform: "...T270,20  "
     });
     var planeClone = {};
-    plane['clearClone'] = function() {
-        if (!planeClone.hasMoved) {
-            planeClone.remove();
+    plane['clearClone'] = function(force) {
+        var canClear = !planeClone.hasMoved && planeClone.id;
+        if (force === undefined) {
+            force = false;
+        }
+        if (canClear || force) {
+            try {
+                planeClone.remove();
+                that.countClones--;
+            } catch (e) {
+                console.log(e);
+            }
+
         }
     };
 
@@ -38,15 +49,14 @@ pg.Plane = function(R) {
         if (that.countClones >= pg.defaults.max_planes) {
             return;
         }
+        that.countClones++;
         planeClone = this.clone();
         planeClone.hasMoved = false;
         planeClone.drag(planeCloneMove, planeCloneDragStart, planeCloneDragUp);
-        that.countClones++
+
     });
 
     var planeCloneMove = function(dx, dy ) {
-        planeClone.hasMoved = true;
-
         this.transform("...T"+ (dx - this.ox) +','+ (dy - this.oy) );
         this.ox = dx;
         this.oy = dy;
@@ -56,8 +66,7 @@ pg.Plane = function(R) {
         this.ox = 0;
         this.oy = 0;
         var bbox = this.getBBox();
-        this.start_x = bbox.x;
-        this.start_y = bbox.y;
+        console.log(bbox)
     };
 
     var planeCloneDragUp = function(e) {
@@ -88,10 +97,13 @@ pg.Plane = function(R) {
         }
 
         if (out_x || out_y) {
-            move_x = this.start_x;
-            move_y = this.start_y;
-
+            // remove clone -> dropped outside
+            that.countClones--;
+            this.remove();
+            return;
         }
+        this.hasMoved = true;
+
 
 
         // to which corner is it closer?
@@ -102,8 +114,6 @@ pg.Plane = function(R) {
             var corner_top_y = Math.floor(y / 20) * 20;
             var closest_x = corner_top_x,
                 closest_y = corner_top_y;
-            console.log(x, '-', corner_top_x, '>', corner_top_x+20, '-', x);
-            console.log(corner_top_x, corner_top_y);
 
             if (x-corner_top_x >( corner_top_x+20) - x) {
                 closest_x = corner_top_x + 20
@@ -116,19 +126,27 @@ pg.Plane = function(R) {
 
         };
         var move_to = get_closest_corner(move_x, move_y);
-        console.log(move_to)
-        this.transform("t"+move_to.x + ','+move_to.y);
+
+        this.transform("t"+move_to.x + ','+move_to.y + 'r'+that.getRotationState());
         //console.log(bbox);
         // TODO: animation here would be nice
 
 
         this.ox = 0;
         this.oy = 0;
-        console.log('dropped');
         planeClone.toFront();
     };
 
-    return plane;
+    this.plane = plane;
+};
+pg.Plane.prototype.getPlaneSVG = function() {
+    return this.plane;
+};
+pg.Plane.prototype.getRotationState = function() {
+    return this.rotationState % 4 * 90;
+};
+pg.Plane.prototype.updateRotationState = function() {
+    this.rotationState++;
 };
 
 pg.Battlefield = function(config) {
@@ -166,9 +184,12 @@ pg.Battlefield = function(config) {
     });
     rotate.transform("T315, 120");
     var plane = new pg.Plane(this.R);
+    var planeSVG = plane.getPlaneSVG();
     rotate.click(function(e){
-        plane.clearClone();
-        plane.transform("...r90");
+        planeSVG.clearClone();
+        planeSVG.transform("...R90");
+
+        plane.updateRotationState();
     });
 };
 
