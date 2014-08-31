@@ -2,30 +2,50 @@ var mine = mine || {};
 mine.settings = {
     rows: 10,
     cols: 10,
-    width: 31,
-    height: 31
+    width: 30,
+    height: 30
 };
 
 mine.clickedCells = [];
 mine.bombs = [];
+
+mine.loadImages = function(callback) {
+    // calls a given function when all the required images have been loaded
+    var images = {
+        cellImg: "images/cell.gif",
+        cellClickedImg: "images/cell2.gif",
+        bombImg: "images/bomb.gif",
+        flagImg: "images/flag.gif",
+        qMarkImg: "images/q_mark.gif"
+    };
+    var countLoaded = 0;
+    var execOnLoad = function() {
+        countLoaded++;
+        if (countLoaded >= 5) {
+            callback();
+        }
+    };
+    for (var img in images) {
+        if (images.hasOwnProperty(img)) {
+            mine[img]  = new Image();
+            mine[img].onload = execOnLoad;
+            mine[img].src = images[img];
+        }
+    }
+};
+
 mine.init = function () {
     mine.initBombs();
+
     mine.canvas = document.getElementById("field");
     mine.context = mine.canvas.getContext('2d');
     mine.context.font = "bold 14px sans-serif";
 
-    var cellImg = new Image();
-    var bombImg = new Image();
-
-    cellImg.onload = function () {
-        mine.cellImg = cellImg;
-        mine.bombImg = bombImg;
+    mine.loadImages(function(){
         mine.draw();
         mine.initEvents();
-    };
+    });
 
-    cellImg.src = "images/cell.jpg";
-    bombImg.src = "images/bomb.gif";
 };
 
 mine.initEvents = function () {
@@ -51,7 +71,11 @@ mine.initEvents = function () {
     }).on('contextmenu', function(e){
         // flag it
         var cell = getCell(e, this);
-        console.log('right click', cell);
+        var coordX = cell.x * mine.settings.width,
+            coordY = cell.y * mine.settings.height;
+        mine.context.drawImage(mine.qMarkImg, coordX, coordY);
+        console.log(coordX, coordY);
+
         return false;
     });
 };
@@ -149,15 +173,15 @@ mine.draw = function () {
         for (j = 0; j < mine.settings.rows; j++) {
             x = mine.settings.width * i;
             y = mine.settings.height * j;
-            mine.context.strokeRect(x, y, mine.settings.width, mine.settings.height);
             cell = {
-                x: x % 30,
-                y: y % 30
+                x: x / 30,
+                y: y / 30
             };
             if (mine.isBomb(cell.x, cell.y)) {
                 mine.context.drawImage(mine.bombImg, x, y);
             } else {
                 if (mine.isClicked(cell.x, cell.y)) {
+                    mine.context.drawImage(mine.cellClickedImg, x, y);
                     mine.context.fillText(mine.clickedCells[cell.x][cell.y], x + 8, y + mine.settings.height - 8);
                 } else {
                     mine.context.drawImage(mine.cellImg, x, y);
