@@ -6,8 +6,13 @@ mine.settings = {
     height: 30
 };
 
-mine.clickedCells = [];
+mine.clickedCells = {};
+mine.rClicked = {};
 mine.bombs = [];
+// right click states
+mine.DEFAULT = 'cellImg';
+mine.FLAGGED = 'flagImg';
+mine.UNKNOWN = 'unknownImg';
 
 mine.loadImages = function(callback) {
     // calls a given function when all the required images have been loaded
@@ -16,7 +21,7 @@ mine.loadImages = function(callback) {
         cellClickedImg: "images/cell2.gif",
         bombImg: "images/bomb.gif",
         flagImg: "images/flag.gif",
-        qMarkImg: "images/q_mark.gif"
+        unknownImg: "images/q_mark.gif"
     };
     var countLoaded = 0;
     var execOnLoad = function() {
@@ -62,6 +67,11 @@ mine.initEvents = function () {
     };
     $(mine.canvas).on('click', function (e) {
         var cell = getCell(e, this);
+
+        if (mine.flag.isFlagged(cell.x, cell.y)) {
+            return;
+        }
+
         if (mine.clickedCells[cell.x] !== undefined &&
             mine.clickedCells[cell.x][cell.y] !== undefined) {
             return;
@@ -73,12 +83,42 @@ mine.initEvents = function () {
         var cell = getCell(e, this);
         var coordX = cell.x * mine.settings.width,
             coordY = cell.y * mine.settings.height;
-        mine.context.drawImage(mine.qMarkImg, coordX, coordY);
-        console.log(coordX, coordY);
+
+        var key = mine.flag.getKey(cell.x, cell.y);
+        mine.flag.updateFlagState(key);
+
+        mine.context.drawImage(mine[mine.rClicked[key]], coordX, coordY);
 
         return false;
     });
 };
+
+mine.flag = {};
+mine.flag.getKey = function(x, y) {
+    return x + '-' + y;
+};
+
+mine.flag.updateFlagState = function(key) {
+    switch (mine.rClicked[key]){
+        case mine.DEFAULT:
+            mine.rClicked[key] = mine.FLAGGED;
+            break;
+        case mine.FLAGGED:
+            mine.rClicked[key] = mine.UNKNOWN;
+            break;
+        case mine.UNKNOWN:
+            mine.rClicked[key] = mine.DEFAULT;
+            break;
+        default:
+            mine.rClicked[key] = mine.FLAGGED;
+    }
+};
+
+mine.flag.isFlagged = function(x, y) {
+    console.log(mine.rClicked[mine.flag.getKey(x, y)]);
+    return mine.rClicked[mine.flag.getKey(x, y)] === mine.FLAGGED;
+};
+
 
 mine.handleBomb = function (x, y) {
     if (mine.isBomb(x, y)) {
@@ -219,7 +259,6 @@ mine.initBombs = function () {
         mine.bombs.push(bomb);
         i++;
     }
-    console.log(mine.bombs)
 };
 
 (function ($) {
