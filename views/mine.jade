@@ -1,10 +1,15 @@
 h1  Minesweeper
 
-div#content
-    div#ctrls
-    div#game
+div#content.content
+    div#ctrls.ctrl-group
+        a(href="#", title="Retry")#ctrl-retry.ctrl Retry
+        a(href="#", title="New game")#ctrl-new.ctrl New Game
+        a(href="#", title="Top scores")#ctrl-top.ctrl Top scores
+    div#game.game
         canvas#field(width=400, height=400)
-
+    div#status.status
+        div#timer.status-item
+        div#flags.status-item
 
 script(src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js")
 script(src="/javascripts/mine.js")
