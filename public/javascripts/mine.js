@@ -39,9 +39,17 @@ mine.loadImages = function(callback) {
     }
 };
 
+mine.restart = function() {
+    mine.clickedCells = {};
+    mine.rClicked = {};
+    mine.bombs = [];
+
+    mine.init();
+};
+
 mine.init = function () {
     mine.initBombs();
-
+    mine.timer.reset();
     mine.canvas = document.getElementById("field");
     mine.context = mine.canvas.getContext('2d');
     mine.context.font = "bold 14px sans-serif";
@@ -66,6 +74,7 @@ mine.initEvents = function () {
         };
     };
     $(mine.canvas).on('click', function (e) {
+        mine.timer.start();
         var cell = getCell(e, this);
 
         if (mine.flag.isFlagged(cell.x, cell.y)) {
@@ -115,7 +124,6 @@ mine.flag.updateFlagState = function(key) {
 };
 
 mine.flag.isFlagged = function(x, y) {
-    console.log(mine.rClicked[mine.flag.getKey(x, y)]);
     return mine.rClicked[mine.flag.getKey(x, y)] === mine.FLAGGED;
 };
 
@@ -129,11 +137,11 @@ mine.handleBomb = function (x, y) {
     stop = 0;
     mine.checkForBombsAround(x, y);
 };
-var stop = 0;
+mine.reccursionSafety = 0;
 mine.checkForBombsAround = function (x, y) {
-    stop++;
-    if (stop > 510) {
-        throw new Error("too much!!!!!!")
+    mine.reccursionSafety++;
+    if (mine.reccursionSafety > 510) {
+        throw new Error("too much recursion!")
     }
     var cellsAround = [
         [-1, -1],
@@ -168,6 +176,9 @@ mine.checkForBombsAround = function (x, y) {
             if (mine.isClicked(nextX, nextY)) {
                 continue;
             }
+            if (mine.flag.isFlagged(nextX, nextY)) {
+                return;
+            }
             if (nextX >= 0 && nextY >= 0 && nextX < mine.settings.cols && nextY < mine.settings.rows) {
                 mine.checkForBombsAround(nextX, nextY);
             }
@@ -197,6 +208,8 @@ mine.isBomb = function (x, y) {
 };
 
 mine.endLose = function () {
+    mine.timer.stop();
+    // no score should be recorded
     console.log('KO');
 };
 
@@ -223,7 +236,11 @@ mine.draw = function () {
                 if (mine.isClicked(cell.x, cell.y)) {
                     mine.context.drawImage(mine.cellClickedImg, x, y);
                     mine.context.fillText(mine.clickedCells[cell.x][cell.y], x + 8, y + mine.settings.height - 8);
-                } else {
+                } else if (mine.flag.isFlagged(cell.x, cell.y)) {
+                    var img = mine.rClicked[mine.flag.getKey(cell.x, cell.y)];
+                    mine.context.drawImage(mine[img], x, y);
+                }
+                else {
                     mine.context.drawImage(mine.cellImg, x, y);
                 }
 
@@ -261,12 +278,41 @@ mine.initBombs = function () {
     }
 };
 
+
+mine.timer = {};
+mine.timer.interval = null;
+mine.timer.time = 0;
+mine.timer.start = function() {
+    if (mine.timer.interval) {
+        return;
+    }
+    mine.timer.interval = setInterval(function(){
+        mine.timer.time++;
+        $('#timer').text(mine.timer.time);
+    }, 1000);
+};
+
+mine.timer.stop = function() {
+    clearInterval(mine.timer.interval);
+    return mine.timer.time;
+};
+
+mine.timer.reset = function() {
+    mine.timer.stop();
+    $('#timer').text(0);
+    mine.timer.time = 0;
+    mine.timer.interval = null;
+};
+
 (function ($) {
 
 
     $(document).ready(function () {
-        mine.init()
-
+        mine.init();
+        $('#ctrl-retry, #ctrl-new').click(function(e) {
+            e.preventDefault();
+            mine.restart();
+        });
 
     });
 }(jQuery));
