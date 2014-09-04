@@ -6,10 +6,12 @@ div#content.content
         a(href="#", title="New game")#ctrl-new.ctrl New Game
         a(href="#", title="Top scores")#ctrl-top.ctrl Top scores
     div#game.game
-        canvas#field(width=400, height=400)
+        canvas#field(width=310, height=310)
     div#status.status
         div#timer.status-item 0
-        div#flags.status-item
+        div.status-item
+            div.flag
+            span#flags.count 0
 
 script(src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js")
 script(src="/javascripts/mine.js")
