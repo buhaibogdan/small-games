@@ -3,15 +3,14 @@
 // - setup github
 // DONE - check for win condition (at click?)
 // DONE - hide bombs :)
-// - show win/lose message
-// - update images to be with white bevel(?) and a lighter grey
+// DONE - show win/lose message
+// DONE - update images to be with white bevel(?) and a lighter grey
 // - top scores
 // - refactoring (use maybe a different pattern)
 // - customize new game
 // - highlight the clicked bomb with another image or a border
 // - send status to server
 // - store in some small db
-// -
 
 
 var mine = mine || {};
@@ -141,10 +140,11 @@ mine.flag.getKey = function(x, y) {
 };
 
 mine.flag.updateFlagState = function(key) {
-    var flagState = -1;
+    var flagState;
     switch (mine.rClicked[key]){
         case mine.DEFAULT:
             mine.rClicked[key] = mine.FLAGGED;
+            flagState = -1;
             break;
         case mine.FLAGGED:
             mine.rClicked[key] = mine.UNKNOWN;
@@ -152,9 +152,11 @@ mine.flag.updateFlagState = function(key) {
             break;
         case mine.UNKNOWN:
             mine.rClicked[key] = mine.DEFAULT;
+            flagState = 0;
             break;
         default:
             mine.rClicked[key] = mine.FLAGGED;
+            flagState = -1;
     }
     mine.flag.updateView(flagState);
 };
@@ -262,7 +264,7 @@ mine.endLose = function () {
     mine.endGame();
     mine.revealBombs();
     // no score should be recorded
-    console.log('KO');
+    alert("BOOM!");
 };
 mine.endGame = function() {
     mine.clearEvents();
