@@ -1,3 +1,4 @@
+
 h1  Minesweeper
 
 div#content.content
@@ -13,5 +14,24 @@ div#content.content
             div.flag
             span#flags.count 0
 
+.modal.fade#newgame
+    .modal-dialog
+        .modal-content
+            .modal-header
+                button.close(type="button", data-dismiss="modal", aria-hidden="true")
+                    span(aria-hidden="true") &times;
+                    span.sr-only Close
+                h4.modal-title New game
+            .modal-body
+                p Choose difficulty
+                .btn-group
+                    button.btn.btn-default(type="button") Easy
+                    button.btn.btn-default(type="button") Normal
+                    button.btn.btn-default(type="button") Hard
+            .modal-footer
+                button.btn.btn-default(type="button" data-dismiss="modal") Cancel
+                button.btn.btn-primary(type="button") Play
+
 script(src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js")
+script(src="/bootstrap/dist/js/bootstrap.min.js")
 script(src="/javascripts/mine.js")
