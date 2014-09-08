@@ -1,18 +1,3 @@
-// Left to do:
-// DONE - color and center numbers
-// - setup github
-// DONE - check for win condition (at click?)
-// DONE - hide bombs :)
-// DONE - show win/lose message
-// DONE - update images to be with white bevel(?) and a lighter grey
-// - top scores
-// - refactoring (use maybe a different pattern)
-// - customize new game
-// - highlight the clicked bomb with another image or a border
-// - send status to server
-// - store in some small db
-
-
 var mine = mine || {};
 mine.settings = {
     rows: 10,
