@@ -1,10 +1,30 @@
 var mine = mine || {};
 mine.settings = {
-    rows: 10,
-    cols: 10,
+    rows: 9,
+    cols: 9,
     width: 30,
-    height: 30
+    height: 30,
+    bombs: 10
 };
+
+mine.difficulty = {
+    'easy': {
+        rows: 9,
+        cols: 9,
+        bombs: 9
+    },
+    'normal': {
+        rows: 15,
+        cols: 15,
+        bombs: 16
+    },
+    'hard': {
+        rows: 15,
+        cols: 30,
+        bombs: 90
+    }
+};
+
 
 mine.cellsHidden = mine.settings.rows * mine.settings.cols;
 mine.clickedCells = {};
@@ -47,14 +67,16 @@ mine.restart = function() {
     mine.bombs = [];
     mine.flag.count = null;
     mine.clearEvents();
-    mine.init();
+    mine.init('hard');
 };
 
-mine.init = function () {
-    mine.initBombs();
-    mine.timer.reset();
+mine.init = function (difficulty) {
     mine.canvas = document.getElementById("field");
     mine.context = mine.canvas.getContext('2d');
+
+    mine.initSettings(difficulty);
+    mine.initBombs();
+    mine.timer.reset();
     mine.context.font = "bold 20px sans-serif";
 
     mine.loadImages(function(){
@@ -62,7 +84,54 @@ mine.init = function () {
         mine.initEvents();
         mine.flag.updateView();
     });
+};
 
+mine.initSettings = function(difficulty) {
+    switch (difficulty) {
+        case 'easy':
+            $.extend(mine.settings, mine.difficulty.easy);
+            break;
+        case 'normal':
+            $.extend(mine.settings, mine.difficulty.normal);
+            break;
+        case 'hard':
+            $.extend(mine.settings, mine.difficulty.hard);
+            break;
+        default:
+            $.extend(mine.settings, mine.difficulty.easy)
+    }
+    var canvasHeight = mine.settings.rows * mine.settings.height + 10,
+        canvasWidth = mine.settings.cols * mine.settings.width + 10;
+    $(mine.canvas).attr('width', canvasWidth);
+    $(mine.canvas).attr('height', canvasHeight);
+};
+
+
+mine.bombExists = function (bomb) {
+    var numBombs = mine.bombs.length,
+        j;
+    for (j = 0; j < numBombs; j++) {
+        if (bomb[0] === mine.bombs[j][0] && bomb[1] === mine.bombs[j][1]) {
+            return true;
+        }
+    }
+    return false;
+};
+
+mine.initBombs = function () {
+    var i = 0;
+    while (i < mine.settings.bombs) {
+        var bomb = [
+            Math.floor(Math.random() * mine.settings.cols),
+            Math.floor(Math.random() * mine.settings.cols)
+        ];
+
+        if (mine.bombExists(bomb)) {
+            continue;
+        }
+        mine.bombs.push(bomb);
+        i++;
+    }
 };
 
 mine.initEvents = function () {
@@ -301,15 +370,15 @@ mine.getColor = function(numBombs) {
 
 mine.draw = function (showBombs) {
     //showBombs = true;
-    mine.context.clearRect(0, 0, 400, 400);
+    mine.context.clearRect(0, 0, 1000, 1000);
     var i, j, x, y, cell, numBombs;
     for (i = 0; i < mine.settings.cols; i++) {
         for (j = 0; j < mine.settings.rows; j++) {
             x = mine.settings.width * i;
             y = mine.settings.height * j;
             cell = {
-                x: x / 30,
-                y: y / 30
+                x: x / mine.settings.width,
+                y: y / mine.settings.height
             };
             if (showBombs && mine.isBomb(cell.x, cell.y)) {
                 mine.context.drawImage(mine.bombImg, x, y);
@@ -331,33 +400,6 @@ mine.draw = function (showBombs) {
     }
 };
 
-
-mine.bombExists = function (bomb) {
-    var numBombs = mine.bombs.length,
-        j;
-    for (j = 0; j < numBombs; j++) {
-        if (bomb[0] === mine.bombs[j][0] && bomb[1] === mine.bombs[j][1]) {
-            return true;
-        }
-    }
-    return false;
-};
-
-mine.initBombs = function () {
-    var i = 0;
-    while (i < mine.settings.cols) {
-        var bomb = [
-            Math.floor(Math.random() * mine.settings.cols),
-            Math.floor(Math.random() * mine.settings.cols)
-        ];
-
-        if (mine.bombExists(bomb)) {
-            continue;
-        }
-        mine.bombs.push(bomb);
-        i++;
-    }
-};
 
 // ========================================
 // ================ TIMER =================
@@ -396,11 +438,14 @@ mine.timer.reset = function() {
 
 
     $(document).ready(function () {
-        mine.init();
-        $('#ctrl-retry, #ctrl-new').click(function(e) {
+        mine.init('easy');
+        $('#ctrl-retry').click(function(e) {
             e.preventDefault();
             mine.restart();
         });
+        $('#ctrl-new').click(function(e) {
+            $('#newgame').modal()
+        })
 
     });
 }(jQuery));
