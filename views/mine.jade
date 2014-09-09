@@ -1,7 +1,10 @@
-
-h1  Minesweeper
-
 div#content.content
+    .links
+        a.btn.btn-link(href="/") planesgame
+        a.btn.btn-link(href="/mine") minesweeper
+
+    h1  Minesweeper
+
     div#ctrls.ctrl-group
         a(href="#", title="Retry")#ctrl-retry.ctrl Retry
         a(href="#", title="New game")#ctrl-new.ctrl New Game
@@ -23,14 +26,27 @@ div#content.content
                     span.sr-only Close
                 h4.modal-title New game
             .modal-body
-                p Choose difficulty
-                .btn-group
-                    button.btn.btn-default(type="button") Easy
-                    button.btn.btn-default(type="button") Normal
-                    button.btn.btn-default(type="button") Hard
+                .col-md-6
+                    p Choose difficulty
+                    div#default_difficulty
+                        .row
+                            input(type="radio" id="diff_easy" name="difficulty" checked="checked" value="easy")
+                            label(for="diff_easy") Easy
+                        p.help-block.col-md-offset-1 9x9 and 9 mines
+                        .row
+                            input(type="radio" id="diff_normal" name="difficulty" value="normal")
+                            label(for="diff_normal") Normal
+                        p.help-block.col-md-offset-1 15x15 and 16 mines
+                        .row
+                            input(type="radio" id="diff_hard" name="difficulty" value="hard")
+                            label(for="diff_hard") Hard
+                        p.help-block.col-md-offset-1 15x30 and 90 mines
+                .col-md-6
+                    p ... or customize:
+                .clearfix
             .modal-footer
                 button.btn.btn-default(type="button" data-dismiss="modal") Cancel
-                button.btn.btn-primary(type="button") Play
+                button#play_new_game.btn.btn-primary(type="button") Play
 
 script(src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js")
 script(src="/bootstrap/dist/js/bootstrap.min.js")

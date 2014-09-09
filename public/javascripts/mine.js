@@ -6,7 +6,6 @@ mine.settings = {
     height: 30,
     bombs: 10
 };
-
 mine.difficulty = {
     'easy': {
         rows: 9,
@@ -25,7 +24,7 @@ mine.difficulty = {
     }
 };
 
-
+mine.lastUsedSettings = mine.difficulty.hard;
 mine.cellsHidden = mine.settings.rows * mine.settings.cols;
 mine.clickedCells = {};
 mine.rClicked = {};
@@ -34,6 +33,9 @@ mine.bombs = [];
 mine.DEFAULT = 'cellImg';
 mine.FLAGGED = 'flagImg';
 mine.UNKNOWN = 'unknownImg';
+mine.bombExploded = null;
+
+var debug = {bombs : [[0,1], [0,2], [0,3], [0,4], [0,5], [0,0]]};
 
 mine.loadImages = function(callback) {
     // calls a given function when all the required images have been loaded
@@ -60,14 +62,15 @@ mine.loadImages = function(callback) {
     }
 };
 
-mine.restart = function() {
+mine.restart = function(difficulty) {
     mine.cellsHidden = mine.settings.rows * mine.settings.cols;
     mine.clickedCells = {};
     mine.rClicked = {};
     mine.bombs = [];
     mine.flag.count = null;
+    mine.bombExploded = null;
     mine.clearEvents();
-    mine.init('hard');
+    mine.init(difficulty);
 };
 
 mine.init = function (difficulty) {
@@ -87,23 +90,13 @@ mine.init = function (difficulty) {
 };
 
 mine.initSettings = function(difficulty) {
-    switch (difficulty) {
-        case 'easy':
-            $.extend(mine.settings, mine.difficulty.easy);
-            break;
-        case 'normal':
-            $.extend(mine.settings, mine.difficulty.normal);
-            break;
-        case 'hard':
-            $.extend(mine.settings, mine.difficulty.hard);
-            break;
-        default:
-            $.extend(mine.settings, mine.difficulty.easy)
-    }
+    $.extend(mine.settings, difficulty);
     var canvasHeight = mine.settings.rows * mine.settings.height + 10,
         canvasWidth = mine.settings.cols * mine.settings.width + 10;
     $(mine.canvas).attr('width', canvasWidth);
     $(mine.canvas).attr('height', canvasHeight);
+
+    mine.lastUsedSettings = mine.settings
 };
 
 
@@ -237,13 +230,14 @@ mine.flag.isFlagged = function(x, y) {
 
 mine.handleBomb = function (x, y) {
     if (mine.isBomb(x, y)) {
-        mine.endLose();
+        mine.endLose(x, y);
 
         return;
     }
     // check around
     mine.reccursionSafety = 0;
     mine.checkForBombsAround(x, y);
+    mine.draw();
 };
 
 mine.reccursionSafety = 0;
@@ -294,8 +288,6 @@ mine.checkForBombsAround = function (x, y) {
             }
         }
     }
-
-    mine.draw();
 };
 
 mine.isClicked = function(x, y) {
@@ -314,7 +306,8 @@ mine.isBomb = function (x, y) {
     return false;
 };
 
-mine.endLose = function () {
+mine.endLose = function (x, y) {
+    mine.bombExploded = [x, y];
     mine.endGame();
     mine.revealBombs();
     // no score should be recorded
@@ -380,6 +373,7 @@ mine.draw = function (showBombs) {
                 x: x / mine.settings.width,
                 y: y / mine.settings.height
             };
+
             if (showBombs && mine.isBomb(cell.x, cell.y)) {
                 mine.context.drawImage(mine.bombImg, x, y);
             } else {
@@ -397,6 +391,17 @@ mine.draw = function (showBombs) {
                 }
             }
         }
+    }
+    // highlight the clicked bomb if any
+    if (showBombs && mine.bombExploded) {
+        mine.context.strokeStyle = 'black';
+        mine.context.lineWidth = 2;
+        mine.context.strokeRect(
+            mine.settings.width * mine.bombExploded[0], // x
+            mine.settings.height * mine.bombExploded[1], // y
+            mine.settings.width,
+            mine.settings.height
+        );
     }
 };
 
@@ -435,16 +440,21 @@ mine.timer.reset = function() {
 };
 
 (function ($) {
-
-
     $(document).ready(function () {
-        mine.init('easy');
-        $('#ctrl-retry').click(function(e) {
+        mine.init(mine.difficulty.normal);
+        $('#ctrl-retry').on('click', function(e) {
             e.preventDefault();
-            mine.restart();
+            mine.restart(mine.lastUsedSettings);
         });
         $('#ctrl-new').click(function(e) {
-            $('#newgame').modal()
+            e.preventDefault();
+            var modal = $('#newgame');
+            modal.modal();
+            $('#play_new_game').on('click', function(e) {
+                var difficulty = $('input[name=difficulty]:checked', '#default_difficulty').val();
+                mine.restart(mine.difficulty[difficulty]);
+                modal.modal('hide')
+            });
         })
 
     });
