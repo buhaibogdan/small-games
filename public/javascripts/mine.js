@@ -343,7 +343,6 @@ mine.checkWin = function() {
 mine.endWin = function () {
     var score = mine.endGame();
     // send status to server to store
-    // display
     var msg = "Congrats! You revealed all the bombs in " + score + ' seconds.';
     alert(msg);
     console.log("========================");
@@ -446,7 +445,7 @@ mine.timer.reset = function() {
             e.preventDefault();
             mine.restart(mine.lastUsedSettings);
         });
-        $('#ctrl-new').click(function(e) {
+        $('#ctrl-new').on('click', function(e) {
             e.preventDefault();
             var modal = $('#newgame');
             modal.modal();
