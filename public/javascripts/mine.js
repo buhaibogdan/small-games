@@ -84,7 +84,7 @@ mine.init = function (difficulty) {
 
     mine.loadImages(function(){
         mine.draw();
-        mine.initEvents();
+        mine.initCanvasEvents();
         mine.flag.updateView();
     });
 };
@@ -127,7 +127,7 @@ mine.initBombs = function () {
     }
 };
 
-mine.initEvents = function () {
+mine.initCanvasEvents = function () {
     var getCell = function(e, element) {
         var posX = $(element).position().left,
             posY = $(element).position().top;
@@ -438,34 +438,41 @@ mine.timer.reset = function() {
     mine.timer.interval = null;
 };
 
-(function ($) {
-    $(document).ready(function () {
-        var modal;
-        mine.init(mine.difficulty.normal);
-        $('#ctrl-retry').on('click', function(e) {
-            e.preventDefault();
-            mine.restart(mine.lastUsedSettings);
-        });
+mine.events = {};
+mine.events.initModal = function() {
+    var modal = $('#newgame'),
+        ctrlRetry = $('#ctrl-retry'),
+        ctrlNew = $('#ctrl-new'),
+        diffBtns = $('#diff_easy, #diff_normal, #diff_hard');
 
-        $('#diff_easy, #diff_normal, #diff_hard').on('click', function(e) {
-            console.log("click!!!");
-            e.preventDefault();
-            var difficulty = $(this).attr('data-diff');
+    ctrlRetry.on('click', function(e){
+        e.preventDefault();
+        mine.restart(mine.lastUsedSettings);
+    });
+
+    ctrlNew.on('click', function(e) {
+        e.preventDefault();
+
+        modal.modal();
+        $('#play_new_game').on('click', function(e) {
+            var difficulty = $('input[name=difficulty]:checked', '#default_difficulty').val();
             mine.restart(mine.difficulty[difficulty]);
             modal.modal('hide')
         });
+    });
 
-        $('#ctrl-new').on('click', function(e) {
+    diffBtns.on('click', function(e) {
+        e.preventDefault();
+        var difficulty = $(this).attr('data-diff');
+        mine.restart(mine.difficulty[difficulty]);
+        modal.modal('hide')
+    });
+};
 
-            e.preventDefault();
-            modal = $('#newgame');
-            modal.modal();
-            $('#play_new_game').on('click', function(e) {
-                var difficulty = $('input[name=difficulty]:checked', '#default_difficulty').val();
-                mine.restart(mine.difficulty[difficulty]);
-                modal.modal('hide')
-            });
-        })
+(function ($) {
+    $(document).ready(function () {
+        mine.init(mine.difficulty.normal);
+        mine.events.initModal();
 
     });
 }(jQuery));
