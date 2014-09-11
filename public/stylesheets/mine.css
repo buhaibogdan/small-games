@@ -40,3 +40,22 @@
     -ms-user-select: none;
     user-select: none;
 }
+
+.btn-big {
+    width: 210px;
+    height: 60px;
+    padding: 10px;
+}
+.margin-top-10 {
+    margin-top: 10px;
+}
+.btn-text-big {
+    font-weight: bold;
+    font-size: 16px;
+}
+.new-game-modal .modal-dialog {
+    width: 280px;
+}
+.new-game-modal .modal-title {
+    text-align: center;
+}

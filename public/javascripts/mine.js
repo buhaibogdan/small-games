@@ -440,14 +440,25 @@ mine.timer.reset = function() {
 
 (function ($) {
     $(document).ready(function () {
+        var modal;
         mine.init(mine.difficulty.normal);
         $('#ctrl-retry').on('click', function(e) {
             e.preventDefault();
             mine.restart(mine.lastUsedSettings);
         });
-        $('#ctrl-new').on('click', function(e) {
+
+        $('#diff_easy, #diff_normal, #diff_hard').on('click', function(e) {
+            console.log("click!!!");
             e.preventDefault();
-            var modal = $('#newgame');
+            var difficulty = $(this).attr('data-diff');
+            mine.restart(mine.difficulty[difficulty]);
+            modal.modal('hide')
+        });
+
+        $('#ctrl-new').on('click', function(e) {
+
+            e.preventDefault();
+            modal = $('#newgame');
             modal.modal();
             $('#play_new_game').on('click', function(e) {
                 var difficulty = $('input[name=difficulty]:checked', '#default_difficulty').val();
