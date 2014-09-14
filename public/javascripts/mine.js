@@ -64,7 +64,6 @@
     };
 
     mine.restart = function(difficulty) {
-        mine.cellsHidden = mine.settings.rows * mine.settings.cols;
         mine.clickedCells = {};
         mine.rClicked = {};
         mine.bombs = [];
@@ -72,6 +71,7 @@
         mine.bombExploded = null;
         mine.clearEvents();
         mine.init(difficulty);
+        mine.cellsHidden = mine.settings.rows * mine.settings.cols;
     };
 
     mine.init = function (difficulty) {
@@ -113,7 +113,6 @@
     };
 
     mine.initBombs = function () {
-        mine.bombs = debug.bombs;return;
         var i = 0;
         while (i < mine.settings.bombs) {
             var bomb = [
