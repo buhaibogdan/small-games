@@ -368,31 +368,6 @@
     };
 
     mine.draw = {};
-    mine.draw.getColor = function (numBombs) {
-        var color = "blue";
-        if (numBombs === 2) {
-            color = "green";
-        } else if (numBombs > 2) {
-            color = "red"
-        }
-        return color;
-    };
-
-    mine.draw.writeNormal = function (val, x, y, numBombs) {
-        mine.context.font = "bold 20px sans-serif";
-        mine.context.drawImage(mine.cellClickedImg, x, y);
-
-        mine.context.fillStyle = this.getColor(numBombs);
-        mine.context.fillText(val, x + 9, y + mine.settings.height - 8);
-    };
-
-    mine.draw.bombs = function(x, y, cell) {
-        if (mine.flag.isFlagged(cell.x, cell.y)) {
-            mine.context.globalAlpha = 0.6;
-        }
-        mine.context.drawImage(mine.bombImg, x, y);
-        mine.context.globalAlpha = 1;
-    };
     mine.draw.all = function (showBombs) {
         //showBombs = true;
         mine.context.clearRect(0, 0, 1000, 1000);
@@ -406,24 +381,80 @@
                     y: y / mine.settings.height
                 };
 
-                if (showBombs && mine.isBomb(cell.x, cell.y)) {
-                    mine.draw.bombs(x, y, cell);
-                } else {
-                    if (mine.isClicked(cell.x, cell.y)) {
-                        mine.draw.writeNormal(
-                            mine.clickedCells[cell.x][cell.y], x, y, mine.clickedCells[cell.x][cell.y]
-                        );
-                    } else if (mine.flag.isFlagged(cell.x, cell.y)) {
-                        var img = mine.rClicked[mine.flag.getKey(cell.x, cell.y)];
-                        mine.context.drawImage(mine[img], x, y);
-                    }
-                    else {
-                        mine.context.drawImage(mine.cellImg, x, y);
-                    }
-                }
+                mine.draw.cell(cell, x, y, showBombs);
             }
         }
         // highlight the clicked bomb if any
+        mine.draw.highlightExploded(showBombs)
+    };
+
+    mine.draw.cell = function(cellXY, x, y, showBombs) {
+        // draw a single cell
+        var img;
+        if (showBombs && mine.isBomb(cellXY.x, cellXY.y)) {
+            // draw a bomb
+            mine.draw.bombs(x, y, cellXY);
+            return;
+        }
+
+        if (mine.isClicked(cellXY.x, cellXY.y)) {
+            // write the number of surrounding bombs
+            mine.draw.writeNormal(
+                mine.clickedCells[cellXY.x][cellXY.y], x, y, mine.clickedCells[cellXY.x][cellXY.y]
+            );
+            return;
+        }
+
+        if (!mine.flag.isFlagged(cellXY.x, cellXY.y)) {
+            // undiscovered cell
+            mine.context.drawImage(mine.cellImg, x, y);
+            return;
+        }
+
+        if (showBombs && !mine.isBomb(cellXY.x, cellXY.y)) {
+            // cell marked as bomb but not actually a bomb
+            mine.context.drawImage(mine.cellImg, x, y);
+            mine.draw.writeBigX(x, y);
+        } else {
+            // draw flag or question mark
+            img = mine.rClicked[mine.flag.getKey(cellXY.x, cellXY.y)];
+            mine.context.drawImage(mine[img], x, y);
+        }
+    };
+
+    mine.draw.bombs = function(x, y, cell) {
+        if (mine.flag.isFlagged(cell.x, cell.y)) {
+            mine.context.globalAlpha = 0.6;
+        }
+        mine.context.drawImage(mine.bombImg, x, y);
+        mine.context.globalAlpha = 1;
+    };
+
+    mine.draw.writeNormal = function (val, x, y, numBombs) {
+        mine.context.font = "bold 20px sans-serif";
+        mine.context.drawImage(mine.cellClickedImg, x, y);
+
+        mine.context.fillStyle = this.getColor(numBombs);
+        mine.context.fillText(val, x + 9, y + mine.settings.height - 8);
+    };
+
+    mine.draw.getColor = function (numBombs) {
+        var color = "blue";
+        if (numBombs === 2) {
+            color = "green";
+        } else if (numBombs > 2) {
+            color = "red"
+        }
+        return color;
+    };
+
+    mine.draw.writeBigX = function(x, y) {
+        mine.context.font = "52px sans-serif";
+        mine.context.fillStyle = 'red';
+        mine.context.fillText('x', x + 1, y + mine.settings.height);
+    };
+
+    mine.draw.highlightExploded = function(showBombs) {
         if (showBombs && mine.bombExploded) {
             mine.context.strokeStyle = 'black';
             mine.context.lineWidth = 2;
