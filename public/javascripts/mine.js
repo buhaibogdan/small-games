@@ -1,4 +1,4 @@
-(function($) {
+(function ($) {
     var mine = mine || {};
     mine.settings = {
         rows: 9,
@@ -36,9 +36,16 @@
     mine.UNKNOWN = 'unknownImg';
     mine.bombExploded = null;
 
-    var debug = {bombs : [[0,1], [0,2], [0,3], [0,4], [0,5], [0,0]]};
+    var debug = {bombs: [
+        [0, 1],
+        [0, 2],
+        [0, 3],
+        [0, 4],
+        [0, 5],
+        [0, 0]
+    ]};
 
-    mine.loadImages = function(callback) {
+    mine.loadImages = function (callback) {
         // calls a given function when all the required images have been loaded
         var images = {
             cellImg: "images/cell.gif",
@@ -48,7 +55,7 @@
             unknownImg: "images/q_mark.gif"
         };
         var countLoaded = 0;
-        var execOnLoad = function() {
+        var execOnLoad = function () {
             countLoaded++;
             if (countLoaded >= 5) {
                 callback();
@@ -56,14 +63,14 @@
         };
         for (var img in images) {
             if (images.hasOwnProperty(img)) {
-                mine[img]  = new Image();
+                mine[img] = new Image();
                 mine[img].onload = execOnLoad;
                 mine[img].src = images[img];
             }
         }
     };
 
-    mine.restart = function(difficulty) {
+    mine.restart = function (difficulty) {
         mine.clickedCells = {};
         mine.rClicked = {};
         mine.bombs = [];
@@ -81,16 +88,15 @@
         mine.initSettings(difficulty);
         mine.initBombs();
         mine.timer.reset();
-        mine.context.font = "bold 20px sans-serif";
 
-        mine.loadImages(function(){
-            mine.draw();
+        mine.loadImages(function () {
+            mine.draw.all();
             mine.initCanvasEvents();
             mine.flag.updateView();
         });
     };
 
-    mine.initSettings = function(difficulty) {
+    mine.initSettings = function (difficulty) {
         $.extend(mine.settings, difficulty);
         var canvasHeight = mine.settings.rows * mine.settings.height + 10,
             canvasWidth = mine.settings.cols * mine.settings.width + 10;
@@ -129,7 +135,7 @@
     };
 
     mine.initCanvasEvents = function () {
-        var getCell = function(e, element) {
+        var getCell = function (e, element) {
             var posX = $(element).position().left,
                 posY = $(element).position().top;
             var clk_x = e.pageX - posX,
@@ -155,7 +161,7 @@
             mine.handleBomb(cell.x, cell.y);
             mine.checkWin();
 
-        }).on('contextmenu', function(e){
+        }).on('contextmenu', function (e) {
             // flag it
             var cell = getCell(e, this);
             if (mine.isClicked(cell.x, cell.y)) {
@@ -175,25 +181,25 @@
     };
 
 
-    mine.clearEvents = function() {
+    mine.clearEvents = function () {
         $(mine.canvas).off('click').off('contextmenu');
     };
 
-    mine.revealBombs = function() {
-        mine.draw(true);
+    mine.revealBombs = function () {
+        mine.draw.all(true);
     };
 
     // ========================================
     // ================ FLAGS =================
     // ========================================
     mine.flag = {};
-    mine.flag.getKey = function(x, y) {
+    mine.flag.getKey = function (x, y) {
         return x + '-' + y;
     };
 
-    mine.flag.updateFlagState = function(key) {
+    mine.flag.updateFlagState = function (key) {
         var flagState;
-        switch (mine.rClicked[key]){
+        switch (mine.rClicked[key]) {
             case mine.DEFAULT:
                 mine.rClicked[key] = mine.FLAGGED;
                 flagState = -1;
@@ -214,7 +220,7 @@
     };
 
     mine.flag.count = null;
-    mine.flag.updateView = function(state) {
+    mine.flag.updateView = function (state) {
         if (mine.flag.count === null) {
             // enter here when initializing the field
             mine.flag.count = mine.bombs.length;
@@ -227,7 +233,7 @@
 
         $('#flags').text(mine.flag.count)
     };
-    mine.flag.isFlagged = function(x, y) {
+    mine.flag.isFlagged = function (x, y) {
         return mine.rClicked[mine.flag.getKey(x, y)] === mine.FLAGGED;
     };
     // ========================================
@@ -242,7 +248,7 @@
         // check around
         mine.reccursionSafety = 0;
         mine.checkForBombsAround(x, y);
-        mine.draw();
+        mine.draw.all();
     };
 
     mine.reccursionSafety = 0;
@@ -295,7 +301,7 @@
         }
     };
 
-    mine.isClicked = function(x, y) {
+    mine.isClicked = function (x, y) {
         return mine.clickedCells[x] !== undefined &&
             mine.clickedCells[x][y] !== undefined
     };
@@ -318,12 +324,12 @@
         // no score should be recorded
         mine.events.showEndGameModal()
     };
-    mine.endGame = function() {
+    mine.endGame = function () {
         mine.clearEvents();
         return mine.timer.stop();
     };
 
-    mine.checkWin = function() {
+    mine.checkWin = function () {
         var i,
             numBombs = mine.bombs.length;
         if (0 !== mine.flag.count) {
@@ -336,7 +342,7 @@
             return;
         }
 
-        for (i=0; i<numBombs; i++) {
+        for (i = 0; i < numBombs; i++) {
             if (!mine.flag.isFlagged(mine.bombs[i][0], mine.bombs[i][1])) {
                 return;
             }
@@ -351,7 +357,7 @@
         mine.events.showEndGameModal(score, true);
     };
 
-    mine.getColor = function(numBombs) {
+    mine.getColor = function (numBombs) {
         var color = "blue";
         if (numBombs === 2) {
             color = "green";
@@ -361,10 +367,36 @@
         return color;
     };
 
-    mine.draw = function (showBombs) {
+    mine.draw = {};
+    mine.draw.getColor = function (numBombs) {
+        var color = "blue";
+        if (numBombs === 2) {
+            color = "green";
+        } else if (numBombs > 2) {
+            color = "red"
+        }
+        return color;
+    };
+
+    mine.draw.writeNormal = function (val, x, y, numBombs) {
+        mine.context.font = "bold 20px sans-serif";
+        mine.context.drawImage(mine.cellClickedImg, x, y);
+
+        mine.context.fillStyle = this.getColor(numBombs);
+        mine.context.fillText(val, x + 9, y + mine.settings.height - 8);
+    };
+
+    mine.draw.bombs = function(x, y, cell) {
+        if (mine.flag.isFlagged(cell.x, cell.y)) {
+            mine.context.globalAlpha = 0.6;
+        }
+        mine.context.drawImage(mine.bombImg, x, y);
+        mine.context.globalAlpha = 1;
+    };
+    mine.draw.all = function (showBombs) {
         //showBombs = true;
         mine.context.clearRect(0, 0, 1000, 1000);
-        var i, j, x, y, cell, numBombs;
+        var i, j, x, y, cell;
         for (i = 0; i < mine.settings.cols; i++) {
             for (j = 0; j < mine.settings.rows; j++) {
                 x = mine.settings.width * i;
@@ -375,13 +407,12 @@
                 };
 
                 if (showBombs && mine.isBomb(cell.x, cell.y)) {
-                    mine.context.drawImage(mine.bombImg, x, y);
+                    mine.draw.bombs(x, y, cell);
                 } else {
                     if (mine.isClicked(cell.x, cell.y)) {
-                        numBombs = mine.clickedCells[cell.x][cell.y];
-                        mine.context.drawImage(mine.cellClickedImg, x, y);
-                        mine.context.fillStyle = mine.getColor(numBombs);
-                        mine.context.fillText(mine.clickedCells[cell.x][cell.y], x + 9, y + mine.settings.height - 8);
+                        mine.draw.writeNormal(
+                            mine.clickedCells[cell.x][cell.y], x, y, mine.clickedCells[cell.x][cell.y]
+                        );
                     } else if (mine.flag.isFlagged(cell.x, cell.y)) {
                         var img = mine.rClicked[mine.flag.getKey(cell.x, cell.y)];
                         mine.context.drawImage(mine[img], x, y);
@@ -397,8 +428,8 @@
             mine.context.strokeStyle = 'black';
             mine.context.lineWidth = 2;
             mine.context.strokeRect(
-                mine.settings.width * mine.bombExploded[0], // x
-                mine.settings.height * mine.bombExploded[1], // y
+                    mine.settings.width * mine.bombExploded[0], // x
+                    mine.settings.height * mine.bombExploded[1], // y
                 mine.settings.width,
                 mine.settings.height
             );
@@ -412,27 +443,27 @@
     mine.timer = {};
     mine.timer.interval = null;
     mine.timer.time = 0;
-    mine.timer.start = function() {
+    mine.timer.start = function () {
         if (mine.timer.interval) {
             return;
         }
-        var incrementTimer = function() {
+        var incrementTimer = function () {
             mine.timer.time++;
             $('#timer').text(mine.timer.time);
         };
         incrementTimer();
-        mine.timer.interval = setInterval(function(){
+        mine.timer.interval = setInterval(function () {
             incrementTimer();
         }, 1000);
     };
     // ========================================
     // ========================================
-    mine.timer.stop = function() {
+    mine.timer.stop = function () {
         clearInterval(mine.timer.interval);
         return mine.timer.time;
     };
 
-    mine.timer.reset = function() {
+    mine.timer.reset = function () {
         mine.timer.stop();
         $('#timer').text(0);
         mine.timer.time = 0;
@@ -441,7 +472,7 @@
 
     mine.events = {};
 
-    mine.events.showEndGameModal = function(timer, won) {
+    mine.events.showEndGameModal = function (timer, won) {
         var modal = $('#endgame'),
             winMsg = $('#win_msg'),
             loseMsg = $('#lose_msg'),
@@ -457,29 +488,29 @@
         modal.modal()
     };
 
-    mine.events.initNewGameModal = function() {
+    mine.events.initNewGameModal = function () {
         var modal = $('#newgame'),
             ctrlRetry = $('#ctrl-retry'),
             ctrlNew = $('#ctrl-new'),
             diffBtns = $('#diff_easy, #diff_normal, #diff_hard');
 
-        ctrlRetry.on('click', function(e){
+        ctrlRetry.on('click', function (e) {
             e.preventDefault();
             mine.restart(mine.lastUsedSettings);
         });
 
-        ctrlNew.on('click', function(e) {
+        ctrlNew.on('click', function (e) {
             e.preventDefault();
 
             modal.modal();
-            $('#play_new_game').on('click', function(e) {
+            $('#play_new_game').on('click', function (e) {
                 var difficulty = $('input[name=difficulty]:checked', '#default_difficulty').val();
                 mine.restart(mine.difficulty[difficulty]);
                 modal.modal('hide')
             });
         });
 
-        diffBtns.on('click', function(e) {
+        diffBtns.on('click', function (e) {
             e.preventDefault();
             var difficulty = $(this).attr('data-diff');
             mine.restart(mine.difficulty[difficulty]);
