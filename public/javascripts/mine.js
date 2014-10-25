@@ -1,3 +1,5 @@
+// Functionality for the minesweeper game
+
 (function ($) {
     var mine = mine || {};
     mine.settings = {
